@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- thi two lines is to add downloadable feature like export as PDF   --> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zunheboto Cause List Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Arial,sans-serif;max-width:1400px;margin:auto;padding:20px;background:#f5f5f5}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
+.hidden{display:none}
+input,select,button{padding:8px;margin:4px}
+table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}
+th,td{border:1px solid #ddd;padding:8px}
+th{background:#eee}
+</style>
+</head>
+<body>
+
+<h1>Nagaland District Courts Cause-List Portal</h1>
+
+<!-- to hide the login button after login
+    
+<div class="card">  
+<button onclick="showLogin()">Admin Login</button>
+</div>
+-->
+
+    
+<div class="card" id="loginButtonCard">
+<button onclick="showLogin()">Admin Login</button>
+</div>
+    
+<div id="loginBox" class="card hidden">
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="adminPanel" class="card hidden">
+<input type="hidden" id="recordId">
+
+<select id="district">
+    <option value="">Select District</option>
+    <option value="Dimapur">Dimapur</option>
+    <option value="Kohima">Kohima</option>
+    <option value="Mokokchung">Mokokchung</option>
+    <option value="Tuensang">Tuensang</option>
+    <option value="Wokha">Wokha</option>
+    <option value="Zunheboto">Zunheboto</option>
+    <option value="Mon">Mon</option>
+    <option value="Phek">Phek</option>
+    <option value="Kiphire">Kiphire</option>
+    <option value="Longleng">Longleng</option>
+    <option value="Peren">Peren</option>
+    <option value="Noklak">Noklak</option>
+    <option value="ChÃ¼moukedima">ChÃ¼moukedima</option>
+    <option value="Niuland">Niuland</option>
+    <option value="Shamator">Shamator</option>
+    <option value="Tseminyu">Tseminyu</option>
+    <option value="Meluri">Meluri</option>
+    
+</select> <!-- this part is to add the courts--> 
+
+    
+<select id="court">
+    <option value="">Select Court</option>
+    <option value="District & Sessions (D&SJ) Court">District & Sessions (D&SJ) Court</option>
+    <option value="Judicial Magistrate First Class (JMFC) Court">Judicial Magistrate First Class (JMFC) Court</option>
+    <option value="Judicial Magistrate First Class II (JMFC II) Court">Judicial Magistrate First Class II (JMFC II) Court</option>
+    <option value="Chief Judicial Magistrate (CJM) Court">Chief Judicial Magistrate (CJM) Court</option>
+    <option value="Sub-Divisional Judicial Magistrate (SDJM) Court">Sub-Divisional Judicial Magistrate (SDJM) Court</option>
+    <option value="Motor Accident Claims Tribunal (MACT)">Motor Accident Claims Tribunal (MACT)</option>
+    <option value="Family Court">Family Court</option>
+    <option value="Special Court (POCSO)">Special Court (POCSO)</option>
+    <option value="Fast Track Court">Fast Track Court</option>
+    <option value="NDPS Special Court">NDPS Special Court</option>
+    <option value="Consumer Disputes Redressal Commission">Consumer Commission</option>
+    <option value="Lok Adalat">Lok Adalat</option> 
+</select>
+
+    
+<!-- <input id="slno" placeholder="Sl. No."> -->
+<input id="case_no" placeholder="Case No.">
+<input id="section_detail" placeholder="Section Detail">
+<input id="accused" placeholder="Name of Accused / Petitioner">
+<input id="counsels" placeholder="Name of Counsels">
+<input id="status" placeholder="Status">
+<input id="hearing_date" type="date">
+
+<button onclick="saveRecord()">Save</button>
+<button onclick="clearForm()">Clear</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+    
+<!-- adding both search box as well as the District wise dropdown    
+<div class="card">
+<input id="search" placeholder="Search..." onkeyup="loadCases()">
+</div>
+-->
+    
+<div class="card">
+  <input id="search" placeholder="Search..." onkeyup="loadCases()">
+
+  <select id="districtFilter" onchange="loadCases()">
+    <option value="">All Districts</option>
+    <option value="Dimapur">Dimapur</option>
+    <option value="Kohima">Kohima</option>
+    <option value="Mokokchung">Mokokchung</option>
+    <option value="Tuensang">Tuensang</option>
+    <option value="Wokha">Wokha</option>
+    <option value="Zunheboto">Zunheboto</option>
+    <option value="Mon">Mon</option>
+    <option value="Phek">Phek</option>
+    <option value="Kiphire">Kiphire</option>
+    <option value="Longleng">Longleng</option>
+    <option value="Peren">Peren</option>
+    <option value="Noklak">Noklak</option>
+    <option value="ChÃ¼moukedima">ChÃ¼moukedima</option>
+    <option value="Niuland">Niuland</option>
+    <option value="Shamator">Shamator</option>
+    <option value="Tseminyu">Tseminyu</option>
+    <option value="Meluri">Meluri</option>
+  </select>
+    <button onclick="exportPDF()">Export PDF</button> <!-- this is to add the button to export as PDF-->
+</div>
+
+
+    
+<table>
+<thead>
+<tr>
+<th>Sl. No.</th>
+<th>Case No.</th>
+<th>Section Detail</th>
+<th>Name of Accused / Petitioner</th>
+<th>Name of Counsels</th>
+<th>Status</th>
+<th>Date of Hearing</th>
+<th>Court</th>
+<th>District</th>
+<!--<th>Actions</th> -->
+<th id="actionsHeader" class="hidden">Actions</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+window.isAdmin = false;
+
+//to formate the date to dd-mm-yyy
+function formatDateDMY(dateStr) {
+  if (!dateStr) return "";
+
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}-${month}-${year}`;
+}
+    //till this part
+    
+//from this part is to make the PDF work 
+window.exportPDF = function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.text("Cause List Portal Report", 14, 10);
+
+  const rows = [];
+
+  document.querySelectorAll("#tableBody tr").forEach(tr => {
+    const cols = tr.querySelectorAll("td");
+
+    rows.push([
+      cols[0]?.innerText, // Sl No
+      cols[1]?.innerText, // Case No
+      cols[2]?.innerText, // Section
+      cols[3]?.innerText, // Accused
+      cols[4]?.innerText, // Counsels
+      cols[5]?.innerText, // Status
+      formatDateDMY(cols[6]?.innerText),
+      cols[7]?.innerText, // Court âœ… FIXED
+      cols[8]?.innerText  // District
+    ]);
+  });
+
+  doc.autoTable({
+    head: [[
+      "Sl No",
+      "Case No",
+      "Section",
+      "Accused",
+      "Counsels",
+      "Status",
+      "Date",
+      "Court",
+      "District"
+    ]],
+    body: rows
+  });
+
+  doc.save("cause-list.pdf");
+};
+// To this part of the dode
+    
+const SUPABASE_URL = "https://pxaggcmzbhmxfpuyaofk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB4YWdnY216YmhteGZwdXlhb2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExNTIxMTUsImV4cCI6MjA5NjcyODExNX0.F_1Gv2gbucd89xkCPyi_MNBGfZeR3G-R93DAWdxxxmM";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+window.showLogin=()=>document.getElementById("loginBox").classList.remove("hidden");
+
+
+/*
+
+window.login=async()=>{
+ const {error}=await supabaseClient.auth.signInWithPassword({
+  email:document.getElementById("email").value,
+  password:document.getElementById("password").value
+ });
+ if(error) return alert(error.message);
+ checkUser();
+};
+
+*/
+
+    window.login=async()=>{
+ const {error}=await supabaseClient.auth.signInWithPassword({
+  email:document.getElementById("email").value,
+  password:document.getElementById("password").value
+ });
+
+ if(error) return alert(error.message);
+
+// document.getElementById("loginBox").classList.add("hidden");
+//document.getElementById("loginButtonCard").classList.add("hidden");
+ //document.getElementById("adminPanel").classList.remove("hidden");
+
+  // âœ… refresh page after login
+ location.reload();
+};
+    
+
+window.logout=async()=>{await supabaseClient.auth.signOut();location.reload();};
+
+
+/*    this part is 
+  
+window.checkUser=async()=>{
+ const {data}=await supabaseClient.auth.getUser();
+ if(data.user) document.getElementById("adminPanel").classList.remove("hidden");
+};
+
+*/
+/* b4    
+window.checkUser=async()=>{
+ const {data}=await supabaseClient.auth.getUser();
+
+ if(data.user){
+   //document.getElementById("loginBox").classList.add("hidden");
+     document.getElementById("loginButtonCard").classList.add("hidden");
+   document.getElementById("adminPanel").classList.remove("hidden");
+       resetInactivityTimer(); // start 5-minute timer
+ }else{
+   document.getElementById("adminPanel").classList.add("hidden");
+ }
+};
+
+*/
+
+window.checkUser = async () => {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (data.user) {
+    window.isAdmin = true;
+
+    document.getElementById("loginButtonCard").classList.add("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
+    document.getElementById("actionsHeader").classList.remove("hidden");
+
+    resetInactivityTimer();
+  } else {
+    window.isAdmin = false;
+
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("actionsHeader").classList.add("hidden");
+    document.getElementById("loginButtonCard").classList.remove("hidden");
+}
+
+  loadCases();
+};
+
+
+    
+/*    
+window.clearForm=()=>{
+ ["recordId","slno","case_no","section_detail","accused","counsels","status","hearing_date"]
+ .forEach(id=>document.getElementById(id).value="");
+};
+*/
+    
+window.clearForm=()=>{
+ ["recordId","case_no","section_detail","accused","counsels","status","hearing_date","court"]
+ .forEach(id=>document.getElementById(id).value="");
+
+ district.value="";
+};    
+//374
+   
+window.saveRecord = async () => {
+  const district = document.getElementById("district").value;
+  const court = document.getElementById("court").value;
+  const case_no = document.getElementById("case_no").value;
+  const section_detail = document.getElementById("section_detail").value;
+  const accused = document.getElementById("accused").value;
+  const counsels = document.getElementById("counsels").value;
+  const status = document.getElementById("status").value;
+  const hearing_date = document.getElementById("hearing_date").value;
+  const id = document.getElementById("recordId").value;
+
+  // ❌ VALIDATION CHECK
+  if (!district || !court || !case_no || !section_detail || !accused || !status || !hearing_date) {
+    alert("⚠️ Please fill all required fields before saving!");
+    return;
+  }
+
+  const row = {
+    district,
+    court,
+    case_no,
+    section_detail,
+    accused,
+    counsels,
+    status,
+    hearing_date
+  };
+
+  let result;
+  if (id) {
+    result = await supabaseClient.from("cases").update(row).eq("id", id);
+  } else {
+    result = await supabaseClient.from("cases").insert([row]);
+  }
+
+  if (result.error) return alert(result.error.message);
+
+  clearForm();
+  loadCases();
+};
+//374 till this
+    
+window.editRecordById = async (id) => {
+  const { data, error } = await supabaseClient
+    .from("cases")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) return alert(error.message);
+
+  editRecord(data);
+};
+    window.editRecord = (r) => {
+  recordId.value = r.id || "";
+  district.value = r.district || "";
+  court.value = r.court || "";
+  case_no.value = r.case_no || "";
+  section_detail.value = r.section_detail || "";
+  accused.value = r.accused || "";
+  counsels.value = r.counsels || "";
+  status.value = r.status || "";
+  hearing_date.value = r.hearing_date || "";
+};
+
+window.deleteRecord=async(id)=>{
+ if(!confirm("Delete record?")) return;
+ const {error}=await supabaseClient.from("cases").delete().eq("id",id);
+ if(error) return alert(error.message);
+ loadCases();
+};
+
+window.loadCases=async()=>{
+// const {data,error}=await supabaseClient.from("cases").select("*").order("id",{ascending:false});  replaced for auto sort
+
+    const {data,error}=await supabaseClient
+.from("cases")
+.select("*")
+.order("district",{ascending:true})
+.order("hearing_date",{ascending:true});
+
+ if(error){
+  tableBody.innerHTML=`<tr><td colspan="10">${error.message}</td></tr>`;
+  return;
+ }
+
+ //const search=(document.getElementById("search").value||"").toLowerCase();
+ //tableBody.innerHTML=data.filter(r=>JSON.stringify(r).toLowerCase().includes(search))
+// for the search and the dropdown to add the load of districts
+ const search = (document.getElementById("search").value || "").toLowerCase();
+const districtFilter = document.getElementById("districtFilter").value;
+
+tableBody.innerHTML = data
+.filter(r => {
+  const matchesSearch = JSON.stringify(r).toLowerCase().includes(search);
+  const matchesDistrict = districtFilter === "" || r.district === districtFilter;
+  return matchesSearch && matchesDistrict;
+})
+ //.map(r=>` removed for auto generate
+    .map((r,index)=>`
+
+ 
+  
+<tr>
+<td>${index+1}</td>
+<td>${r.case_no||""}</td>
+<td>${r.section_detail||""}</td>
+<td>${r.accused||""}</td>
+<td>${r.counsels||""}</td>
+<td>${r.status||""}</td>
+<td>${formatDateDMY(r.hearing_date)}</td>
+<td>${r.court || ""}</td>
+<td>${r.district || ""}</td>
+
+${window.isAdmin ? `
+<td>
+<button onclick="editRecordById(${r.id})">Edit</button>
+<button onclick='deleteRecord(${r.id})'>Delete</button>
+</td>
+` : ""}
+
+</tr>`).join("");
+};
+
+
+
+// Auto logout after 5 minutes of inactivity
+let inactivityTimer;
+
+function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+
+    inactivityTimer = setTimeout(async () => {
+        const { data } = await supabaseClient.auth.getUser();
+
+        if (data.user) {
+            await supabaseClient.auth.signOut();
+            alert("Logged out due to 5 minutes of inactivity.");
+            location.reload();
+        }
+    }, 5 * 60 * 1000);
+}
+
+[
+    "mousemove",
+    "mousedown",
+    "keypress",
+    "scroll",
+    "touchstart",
+    "click"
+].forEach(event => {
+    document.addEventListener(event, resetInactivityTimer, true);
+});
+
+checkUser();
+
+</script>
+</body>
+</html>
